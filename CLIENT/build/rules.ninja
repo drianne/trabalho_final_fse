@@ -1364,6 +1364,25 @@ rule CXX_STATIC_LIBRARY_LINKER____idf_esp_adc_cal
 #############################################
 # Rule for compiling C files.
 
+rule C_COMPILER____idf_esp32-DHT11
+  depfile = $DEP_FILE
+  deps = gcc
+  command = /home/adrianne/.espressif/tools/xtensa-esp32-elf/esp-2020r3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc  $DEFINES $INCLUDES $FLAGS -MMD -MT $out -MF $DEP_FILE -o $out   -c $in
+  description = Building C object $out
+
+
+#############################################
+# Rule for linking CXX static library.
+
+rule CXX_STATIC_LIBRARY_LINKER____idf_esp32-DHT11
+  command = $PRE_LINK && /usr/bin/cmake -E remove $TARGET_FILE && /home/adrianne/.espressif/tools/xtensa-esp32-elf/esp-2020r3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ar qc $TARGET_FILE $LINK_FLAGS $in && /home/adrianne/.espressif/tools/xtensa-esp32-elf/esp-2020r3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ranlib $TARGET_FILE && $POST_BUILD
+  description = Linking CXX static library $TARGET_FILE
+  restat = $RESTAT
+
+
+#############################################
+# Rule for compiling C files.
+
 rule C_COMPILER____idf_esp_serial_slave_link
   depfile = $DEP_FILE
   deps = gcc
@@ -1517,7 +1536,7 @@ rule CXX_STATIC_LIBRARY_LINKER____idf_main
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /usr/bin/cmake -H/home/adrianne/Documentos/mqtt -B/home/adrianne/Documentos/mqtt/build
+  command = /usr/bin/cmake -H/home/adrianne/Documentos/trabalho_final_fse/CLIENT -B/home/adrianne/Documentos/trabalho_final_fse/CLIENT/build
   description = Re-running CMake...
   generator = 1
 

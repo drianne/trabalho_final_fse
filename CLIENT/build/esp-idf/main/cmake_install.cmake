@@ -1,4 +1,4 @@
-# Install script for directory: /home/adrianne/Documentos/mqtt/main
+# Install script for directory: /home/adrianne/Documentos/trabalho_final_fse/CLIENT/main
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

@@ -1,4 +1,4 @@
-/* * Data converted from /home/adrianne/Documentos/mqtt/build/esp-idf/mbedtls/x509_crt_bundle
+/* * Data converted from /home/adrianne/Documentos/trabalho_final_fse/CLIENT/build/esp-idf/mbedtls/x509_crt_bundle
  */
 .data
 .section .rodata.embedded

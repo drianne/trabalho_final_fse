@@ -29,7 +29,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/adrianne/Documentos/mqtt/build/esp-idf/soc/esp32/cmake_install.cmake")
+  include("/home/adrianne/Documentos/trabalho_final_fse/CLIENT/build/esp-idf/soc/esp32/cmake_install.cmake")
 
 endif()
 

@@ -10,6 +10,7 @@
 #include "wifi.h"
 #include "http_client.h"
 #include "mqtt.h"
+#include "sensor_module.h"
 
 xSemaphoreHandle conexaoWifiSemaphore;
 xSemaphoreHandle conexaoMQTTSemaphore;
@@ -41,8 +42,7 @@ void trataComunicacaoComServidor(void * params)
   }
 }
 
-void app_main(void)
-{
+void app_main(void){
     // Inicializa o NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -57,4 +57,5 @@ void app_main(void)
 
     xTaskCreate(&conectadoWifi,  "Conexão ao MQTT", 4096, NULL, 1, NULL);
     xTaskCreate(&trataComunicacaoComServidor, "Comunicação com Broker", 4096, NULL, 1, NULL);
+    xTaskCreate(&get_temp_humidity,  "Coleta umidade", 4096, NULL, 1, NULL);
 }

@@ -1,8 +1,8 @@
 {
     "project_name":       "bootloader",
     "project_path":       "/home/adrianne/Documentos/esp/esp-idf/components/bootloader/subproject",
-    "build_dir":          "/home/adrianne/Documentos/mqtt/build/bootloader",
-    "config_file":        "/home/adrianne/Documentos/mqtt/sdkconfig",
+    "build_dir":          "/home/adrianne/Documentos/trabalho_final_fse/CLIENT/build/bootloader",
+    "config_file":        "/home/adrianne/Documentos/trabalho_final_fse/CLIENT/sdkconfig",
     "config_defaults":    "",
     "app_elf":            "bootloader.elf",
     "app_bin":            "bootloader.bin",
