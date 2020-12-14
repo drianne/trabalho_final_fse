@@ -19,8 +19,14 @@
 #include "mqtt_client.h"
 
 #include "mqtt.h"
+#include "led.h"
+#include "main.h"
+#include "config.h"
 
 #define TAG "MQTT"
+#define INITIAL_TOPIC "fse2020/160047595/dispositivos/"
+
+char init_message [200];
 
 extern xSemaphoreHandle conexaoMQTTSemaphore;
 esp_mqtt_client_handle_t client;
@@ -34,12 +40,18 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
         case MQTT_EVENT_CONNECTED:
             ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
             xSemaphoreGive(conexaoMQTTSemaphore);
+
+            // Envia mensagem e se inscreve no tópico
+            strcpy(init_message, INITIAL_TOPIC);
+            strcat(init_message, get_mac_address());
+            mqtt_envia_mensagem(init_message, "novo"); // Mensagem inicial
+
+            msg_id = esp_mqtt_client_subscribe(client, init_message, 0);
             msg_id = esp_mqtt_client_subscribe(client, "servidor/resposta", 0);
             break;
         case MQTT_EVENT_DISCONNECTED:
             ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
             break;
-
         case MQTT_EVENT_SUBSCRIBED:
             ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
             break;
@@ -51,6 +63,7 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
             break;
         case MQTT_EVENT_DATA:
             ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+            flash_light();
             printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
             printf("DATA=%.*s\r\n", event->data_len, event->data);
             break;
@@ -77,10 +90,13 @@ void mqtt_start()
     client = esp_mqtt_client_init(&mqtt_config);
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, client);
     esp_mqtt_client_start(client);
+
+   
+
+    start_led();    
 }
 
-void mqtt_envia_mensagem(char * topico, char * mensagem)
-{
+void mqtt_envia_mensagem(char * topico, char * mensagem){
     int message_id = esp_mqtt_client_publish(client, topico, mensagem, 0, 1, 0);
     ESP_LOGI(TAG, "Mensagem enviada, ID: %d", message_id);
 }

@@ -13,6 +13,6 @@ void get_temp_humidity(){
     while(1) {
         last_read = DHT11_read();
 
-        vTaskDelay(1);
+        vTaskDelay(3000 / portTICK_PERIOD_MS);
     }
 }
