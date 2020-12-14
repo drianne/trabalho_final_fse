@@ -10,7 +10,7 @@
 #define CLIENTID       "MQTTCClientID_TESTE"  
 
 #define MQTT_PUBLISH_TOPIC     "servidor/resposta"
-#define MQTT_SUBSCRIBE_TOPIC   "sensores/temperatura"
+#define MQTT_SUBSCRIBE_TOPIC   "fse2020/130126721/dispositivos/#"
  
 MQTTClient client;
  
@@ -39,7 +39,7 @@ int on_message(void *context, char *topicName, int topicLen, MQTTClient_message 
     MQTTClient_free(topicName); 
     return 1;
 }
- 
+
 int main(int argc, char *argv[])
 {
    int rc;

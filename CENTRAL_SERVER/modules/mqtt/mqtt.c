@@ -1,59 +1,120 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "unistd.h"
 #include <MQTTClient.h>
 #include <cjson/cJSON.h>
+#include "mqtt.h"
+#include "central_server.h"
 
-#define MQTT_ADDRESS   "tcp://mqtt.eclipseprojects.io:1883"
-#define CLIENTID       "MQTTCClientID_TESTE"  
-
-#define MQTT_PUBLISH_TOPIC     "teste/123/publish"
-#define MQTT_SUBSCRIBE_TOPIC   "teste/123/subscribe"
- 
 MQTTClient client;
- 
-void publish(MQTTClient client, char* topic, char* payload);
-int on_message(void *context, char *topicName, int topicLen, MQTTClient_message *message);
- 
-void publish(MQTTClient client, char* topic, char* payload) {
-    MQTTClient_message pubmsg = MQTTClient_message_initializer;
- 
-    pubmsg.payload = payload;
-    pubmsg.payloadlen = strlen(pubmsg.payload);
-    pubmsg.qos = 2;
-    pubmsg.retained = 0;
-    MQTTClient_deliveryToken token;
-    MQTTClient_publishMessage(client, topic, &pubmsg, &token);
-    MQTTClient_waitForCompletion(client, token, 1000L);
-}
- 
-int on_message(void *context, char *topicName, int topicLen, MQTTClient_message *message) {
-    char* payload = message->payload;
-    printf("Mensagem recebida! \n\rTopico: %s Mensagem: %s\n", topicName, payload);
-    publish(client, MQTT_PUBLISH_TOPIC, payload);
- 
-    MQTTClient_freeMessage(&message);
-    MQTTClient_free(topicName); 
-    return 1;
-}
- 
-void mqtt_config()
-{
-   int rc;
-   MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
+struct list_components *list_components;
 
-   MQTTClient_create(&client, MQTT_ADDRESS, CLIENTID, MQTTCLIENT_PERSISTENCE_NONE, NULL);
-   MQTTClient_setCallbacks(client, NULL, NULL, on_message, NULL);
- 
-   rc = MQTTClient_connect(client, &conn_opts);
-  
-   if (rc != MQTTCLIENT_SUCCESS)
-   {
-       printf("\n\rFalha na conexao ao broker MQTT. Erro: %d\n", rc);
-       exit(-1);
-   }
- 
-   MQTTClient_subscribe(client, MQTT_SUBSCRIBE_TOPIC, 0);
- 
-   while(1){}
+void publish(char* topic, char* payload);
+int on_message(void *context, char *topicName, int topicLen, MQTTClient_message *message);
+void subscribe(char * topic);
+void *mqtt_config();
+
+void publish(char* topic, char* payload) {
+  MQTTClient_message pubmsg = MQTTClient_message_initializer;
+  pubmsg.payload = payload;
+  pubmsg.payloadlen = strlen(pubmsg.payload);
+  pubmsg.qos = 2;
+  pubmsg.retained = 0;
+  MQTTClient_deliveryToken token;
+  MQTTClient_publishMessage(client, topic, &pubmsg, &token);
+  MQTTClient_waitForCompletion(client, token, 1000L);
+}
+
+int on_message(void *context, char *topicName, int topicLen, MQTTClient_message *message) {
+  if(strstr(topicName, "dispositivos") != NULL) {
+    if (list_components->total == 10) {
+      printf("Não é possível adicionar mais dispositivos.");
+    }
+    else{
+      char delim[] = "/";
+      char *ptr = strtok(topicName, delim);
+      char *esp_id;
+      for(;(ptr = strtok(NULL, "/")) != NULL; esp_id = ptr);
+      int ja_existe = 0;
+      for(int i=0; i<list_components->total; i++){
+        if(strcmp(list_components->components[i].mac, esp_id)==0) {
+          ja_existe=1;
+        }
+      }
+      if(ja_existe == 0) {
+        int pos = list_components->total;
+        list_components->components[pos].temp = 30;
+        list_components->components[pos].hum = 30;
+        strcpy(list_components->components[pos].mac, esp_id);
+        list_components->total += 1; 
+        char* payload = message->payload;
+        printf("Mensagem recebida! \n\rTopico: %s Mensagem: %s Total de Componentes: %d\n", topicName, payload, list_components->total);
+        MQTTClient_freeMessage(&message);
+        MQTTClient_free(topicName); 
+      }
+    }
+  }
+  else {
+    char delim[] = "/";
+    char *ptr = strtok(topicName, delim);
+    char comodo[50];
+    char topic[50];
+    char url_paths[4][50];
+
+    for(int i=0;(ptr = strtok(NULL, "/")) != NULL; i++){
+      strcpy(url_paths[i], ptr);
+    }
+    strcpy(topic, url_paths[2]);
+    strcpy(comodo, url_paths[1]);
+
+    cJSON * json = cJSON_Parse (message->payload);
+    printf("COMODO: %s", comodo);
+    printf("TOPIC: %s", topic);
+    // printf("CHAVE: %s, VALOR: %s", json->child->string, json->child->valuestring);
+
+    for(int i=0; i<list_components->total; i++){
+      if(strcmp(list_components->components[i].comodo, comodo)==0) {
+        if(strcmp(topic, "temperatura") == 0){
+          list_components->components[i].temp = json->child->valuedouble;
+        }
+        else if(strcmp(topic, "humidade") == 0){
+          list_components->components[i].hum = json->child->valuedouble;
+        }
+        else if(strcmp(topic, "estado") == 0){
+          strcpy(list_components->components[i].state, json->child->valuestring);
+        }
+      }
+    }
+  }
+  return 1;
+}
+
+void subscribe(char * topic) {
+  MQTTClient_subscribe(client, topic, 0);
+}
+
+void *mqtt_config(void *params)
+{
+  list_components = params;
+  int rc;
+  MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
+
+  MQTTClient_create(&client, MQTT_ADDRESS, CLIENTID, MQTTCLIENT_PERSISTENCE_NONE, NULL);
+  MQTTClient_setCallbacks(client, NULL, NULL, on_message, NULL);
+
+  rc = MQTTClient_connect(client, &conn_opts);
+
+  if (rc != MQTTCLIENT_SUCCESS)
+  {
+    printf("\n\rFalha na conexao ao broker MQTT. Erro: %d\n", rc);
+    exit(-1);
+  }
+
+  MQTTClient_subscribe(client, MQTT_SUBSCRIBE_TOPIC, 0);
+  while(1){
+    sleep(1);
+  }
+  MQTTClient_disconnect(client, 1000);
+  MQTTClient_destroy(&client);
 }
