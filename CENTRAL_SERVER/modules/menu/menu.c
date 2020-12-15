@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "central_server.h"
+#include "temperature_module_i2c.h"
 #include "mqtt.h"
 #include "menu.h"
 
@@ -48,7 +49,10 @@ void *menu(void *params)
 void dataInfo(struct list_components *list_components) {
   int row=2;
   mvprintw ((row++)+MARGIN, MARGIN_INFO, "Informações do sistema");
-  row+=5;
+  row+=2;
+  mvprintw ((row++)+MARGIN, MARGIN_INFO, "Temperatura do sistema: %lf", get_temperature());
+  mvprintw ((row++)+MARGIN, MARGIN_INFO, "Humidade do sistema: %lf", get_humidity());
+  row+=1
   for(int i=0; i<list_components->atual; i++){
     mvprintw ((row++)+MARGIN, MARGIN_INFO, "Nome do cômodo: %s", list_components->components[i].comodo);
     mvprintw ((row++)+MARGIN, MARGIN_INFO, "Temperatura: %.2lf", list_components->components[i].temp);
@@ -75,6 +79,8 @@ void menuBorders() {
 void componentSelect(struct list_components *list_components) {
     struct pollfd mypoll = { STDIN_FILENO, POLLIN|POLLPRI };
     int row = 2;
+    mvprintw (row+MARGIN, 20+MARGIN, "Novo dispositivo encontrado");
+    row += 5;
     char comodo[40];
     mvprintw (row+MARGIN, 20+MARGIN, "Adicione um componente");
     row += 5;
@@ -90,6 +96,19 @@ void componentSelect(struct list_components *list_components) {
     strcat(topic_publish, list_components->components[list_components->atual].mac);
     publish(topic_publish, "sala");
     list_components->atual++;
+
+    char dispositivo_entrada[40];
+    mvprintw((row++)+MARGIN,2+MARGIN,"Digite o nome do dispositivo de entrada");
+    getstr(dispositivo_entrada);
+    strcpy(list_components->components[list_components->atual].component_in, dispositivo_entrada);
+
+    char dispositivo_saida[40];
+    mvprintw((row++)+MARGIN,2+MARGIN,"Digite o nome do dispositivo de saída");
+    getstr(dispositivo_saida);
+    strcpy(list_components->components[list_components->atual].component_out, dispositivo_saida);
+
+    list_components->components[list_components->atual].component_in_value = 0;
+    list_components->components[list_components->atual].component_out_value = 0;
 }
 
 void menuUser(struct list_components *list_components) {

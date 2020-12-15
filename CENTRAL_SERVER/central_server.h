@@ -1,3 +1,5 @@
+#ifndef CENTRAL_H_
+#define CENTRAL_H_
 
 #define QNT_DEVICES 18
 #define QNT_OUTPUTS 6
@@ -60,7 +62,10 @@ struct components
     char comodo[40];
     double temp;
     double hum;
-    char state[30];
+    char component_in[30];
+    int component_in_value;
+    char component_out[30];
+    int component_out_value;
 };
 
 struct list_components
@@ -69,3 +74,5 @@ struct list_components
     int atual;
     struct components components[10];
 };
+
+#endif /* CENTRAL_H_ */
