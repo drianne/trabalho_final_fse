@@ -4,7 +4,7 @@
 #include "sdkconfig.h"
 #include "driver/gpio.h"
 
-#include "led.h"
+#include "../led/led.h"
 
 #define LED 2
 

@@ -7,11 +7,11 @@
 #include "esp_log.h"
 #include "freertos/semphr.h"
 
-#include "wifi.h"
-#include "http_client.h"
-#include "mqtt.h"
-#include "sensor_module.h"
-#include "config.h"
+#include "./modules/wifi/wifi.h"
+#include "./modules/http/http_client.h"
+#include "./modules/mqtt/mqtt.h"
+#include "./modules/sensor/sensor_module.h"
+#include "./modules/memory/config.h"
 
 xSemaphoreHandle conexaoWifiSemaphore;
 xSemaphoreHandle conexaoMQTTSemaphore;
@@ -35,7 +35,6 @@ const char* get_mac_address(){
 }
 
 void trataComunicacaoComServidor(void * params){
-  char mensagem[50];
   if(xSemaphoreTake(conexaoMQTTSemaphore, portMAX_DELAY))  {
     while(true){
       char init_message [200];

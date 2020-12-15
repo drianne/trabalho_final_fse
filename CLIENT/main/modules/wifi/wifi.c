@@ -1,6 +1,3 @@
-#include "wifi.h"
-
-#include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
@@ -13,7 +10,10 @@
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
-#include "mqtt.h"
+#include <string.h>
+
+#include "../mqtt/mqtt.h"
+#include "wifi.h"
 
 #define WIFI_SSID      CONFIG_ESP_WIFI_SSID
 #define WIFI_PASS      CONFIG_ESP_WIFI_PASSWORD
