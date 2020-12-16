@@ -61,14 +61,7 @@ void app_main(void){
     conexaoWifiSemaphore = xSemaphoreCreateBinary();
     conexaoMQTTSemaphore = xSemaphoreCreateBinary();
 
-    wifi_start();
-
-    int32_t valor_lido = 0;
-    valor_lido = le_valor_nvs();
-    if(valor_lido == -1){
-        valor_lido = 0;
-    }
-    grava_valor_nvs(valor_lido);
+    wifi_start();    
 
     xTaskCreate(&conectadoWifi,  "Conexão ao MQTT", 4096, NULL, 1, NULL);
     // xTaskCreate(&trataComunicacaoComServidor, "Comunicação com Broker", 4096, NULL, 1, NULL);
