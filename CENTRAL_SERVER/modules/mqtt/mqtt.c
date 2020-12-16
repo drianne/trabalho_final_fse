@@ -5,7 +5,6 @@
 #include <MQTTClient.h>
 #include <cjson/cJSON.h>
 #include "mqtt.h"
-#include "alarm.h"
 #include "central_server.h"
 
 MQTTClient client;
@@ -72,15 +71,12 @@ int on_message(void *context, char *topicName, int topicLen, MQTTClient_message 
         if(strcmp(topic, "temperatura") == 0){
           list_components->components[i].temp = cJSON_GetObjectItemCaseSensitive(json, "temperatura")->valuedouble;
         }
-        else if(strcmp(topic, "humidade") == 0){
-          list_components->components[i].hum = cJSON_GetObjectItemCaseSensitive(json, "humidade")->valuedouble;
+        else if(strcmp(topic, "umidade") == 0){
+          list_components->components[i].hum = cJSON_GetObjectItemCaseSensitive(json, "umidade")->valuedouble;
         }
         else if(strcmp(topic, "estado") == 0){
           list_components->components[i].component_in_value = cJSON_GetObjectItemCaseSensitive(json, "dispositivo_entrada")->valueint;
           list_components->components[i].component_out_value = cJSON_GetObjectItemCaseSensitive(json, "dispositivo_saida")->valueint;
-          if (list_components->components[i].component_in_value == 1 || list_components->components[i].component_out_value) {
-            turn_on_alarm();
-          }
         }
       }
     }

@@ -35,7 +35,6 @@ void *polling(void *params) {
         while (1 == bcm2835_gpio_lev(sensor)){
             sleep(1);
         };
-        turn_down_alarm();
         while (0 == bcm2835_gpio_lev(sensor)){
             sleep(1);
         };

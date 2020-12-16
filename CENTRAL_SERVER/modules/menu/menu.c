@@ -58,14 +58,14 @@ void dataInfo(struct list_components *list_components) {
   mvprintw ((row++)+MARGIN, MARGIN_INFO, "Informações do sistema");
   row+=2;
   mvprintw ((row++)+MARGIN, MARGIN_INFO, "Temperatura do sistema: %.2lf", get_temperature());
-  mvprintw ((row++)+MARGIN, MARGIN_INFO, "Humidade do sistema: %.2lf", get_humidity());
+  mvprintw ((row++)+MARGIN, MARGIN_INFO, "Umidade do sistema: %.2lf", get_humidity());
   mvprintw ((row++)+MARGIN, MARGIN_INFO, "Lâmpada cozinha: %s", mapResponse[lampada_cozinha[0]]);
   mvprintw ((row++)+MARGIN, MARGIN_INFO, "Lâmpada sala: %s", mapResponse[lampada_sala[0]]);
   row+=1;
   for(int i=0; i<list_components->atual; i++){
     mvprintw ((row++)+MARGIN, MARGIN_INFO, "Nome do cômodo: %s", list_components->components[i].comodo);
     mvprintw ((row++)+MARGIN, MARGIN_INFO, "Temperatura: %.2lf", list_components->components[i].temp);
-    mvprintw ((row++)+MARGIN, MARGIN_INFO, "Humidade: %.2lf", list_components->components[i].hum);
+    mvprintw ((row++)+MARGIN, MARGIN_INFO, "Umidade: %.2lf", list_components->components[i].hum);
     mvprintw ((row++)+MARGIN, MARGIN_INFO, "%s: %s", list_components->components[i].component_in, mapResponse[list_components->components[i].component_in_value]);
     mvprintw ((row++)+MARGIN, MARGIN_INFO, "%s: %s", list_components->components[i].component_out, mapResponse[list_components->components[i].component_out_value]);
     row+=2;
@@ -103,8 +103,8 @@ void componentSelect(struct list_components *list_components) {
     strcat(topic_publish, list_components->components[list_components->atual].mac);
     char msg [40];
     sprintf(msg,"{\"comodo\": \"%s\"}", comodo);
-
     publish(topic_publish, msg);
+
 
     char dispositivo_entrada[40];
     mvprintw((row++)+MARGIN,2+MARGIN,"Digite o nome do dispositivo de entrada ");
