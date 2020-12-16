@@ -127,64 +127,39 @@ void menuUser(struct list_components *list_components) {
     int row = 2;
     int invertValues[2] = {1, 0}; 
     char mapResponse[2][10] = {"Ligar", "Desligar"};
-    char choice[10] = {'$'};
     char controlType;
     mvprintw (row+MARGIN, 20+MARGIN, "Menu do Sistema");
     row += 5;
-    mvprintw((row++)+MARGIN,2+MARGIN,"a. Controle de dispositivos");
+    mvprintw((row++)+MARGIN,2+MARGIN,"Escolha um dos dispositivos: ");
+    int choice=10;
+    int i;
+    for(i=0; i<list_components->atual; i++){
+      mvprintw ((row++)+MARGIN,2+MARGIN, "%d. %s %s(%s)", i, mapResponse[list_components->components[i].component_out_value],list_components->components[i].component_out, list_components->components[i].comodo);
+    }
+    i++;
+    lampada_cozinha[1] = i;
+    mvprintw ((row++)+MARGIN,2+MARGIN, "%d. %s lâmpada da cozinha", i++, mapResponse[lampada_cozinha[0]]);
+    lampada_sala[1] = i;
+    mvprintw ((row++)+MARGIN,2+MARGIN, "%d. %s lâmpada da sala", i, mapResponse[lampada_sala[0]]);
+    row++;
     mvprintw((row++)+MARGIN,2+MARGIN,"Pressione CTRL + C para sair do programa");
-    row++;
-    mvprintw((row++)+MARGIN,2+MARGIN,"Digite a sua escolha:  ");
-    row++;
 
+    mvprintw ((row++)+MARGIN,2+MARGIN, "Digite a sua escolha: ");
     if( poll(&mypoll, 1, 0) ){
-      getstr(choice);
-    }
-
-    if(!strcmp(choice, "a")) {
-      mvprintw((row++)+MARGIN,2+MARGIN,"Escolha um dos dispositivos: ");
-      int choice;
-      int i;
-      for(i=0; i<list_components->atual; i++){
-        mvprintw ((row++)+MARGIN,2+MARGIN, "%d. %s %s(%s)", i, mapResponse[list_components->components[i].component_out_value],list_components->components[i].component_out, list_components->components[i].comodo);
-      }
-      i++;
-      lampada_cozinha[1] = i;
-      mvprintw ((row++)+MARGIN,2+MARGIN, "%d. %s lâmpada da cozinha", i++, mapResponse[lampada_cozinha[0]]);
-      lampada_sala[1] = i;
-      mvprintw ((row++)+MARGIN,2+MARGIN, "%d. %s lâmpada da sala", i, mapResponse[lampada_sala[0]]);
-
-      mvprintw ((row++)+MARGIN,2+MARGIN, "Digite a sua escolha: ");
       scanw(" %d", &choice);
-      char topico[50];
-      char msg[60];
-      if (choice <= list_components->atual) {
-        sprintf(topico,"fse2020/130126721/dispositivos/%s", list_components->components[choice].mac);
-        sprintf(msg,"{\"dispositivo_entrada\":%d}", invertValues[list_components->components[choice].component_out_value]);
-        publish(topico, msg);
-      }
-      else if(choice == list_components->atual+1) {
-        lampada_cozinha[0] = inverte_estado(L_KITCHEN, lampada_cozinha[0]);
-      }
-      else if(choice == list_components->atual+2) {
-        lampada_sala[0] = inverte_estado(L_ROOM, lampada_sala[0]);
-      }
     }
-    else if(!strcmp(choice, "b")) {
-      row++;
-      int conditionalAir;
-      mvprintw((row++)+MARGIN,2+MARGIN,"Digite o número do ar condicionado: ");
-      scanw(" %d", &conditionalAir);
-      // mvprintw((row++)+MARGIN,2+MARGIN,"value escolhido = %d, value atual = %d", conditionalAir, list_components->devices->airConditioning1);
-      if (conditionalAir == 1) {
-        // send_data(AIR_BEDROOM_1, invertValues[list_components->devices->airConditioning1], 0);
-      }
-      else if(conditionalAir == 2) {
-        // send_data(AIR_BEDROOM_2, invertValues[list_components->devices->airConditioning2], 0);
-      }
-      else {
-        mvprintw((row++)+MARGIN,2+MARGIN,"Ativação cancelada");
-      }
+    char topico[50];
+    char msg[60];
+    if (list_components->atual!= 0 && choice < list_components->atual) {
+      sprintf(topico,"fse2020/130126721/dispositivos/%s", list_components->components[choice].mac);
+      sprintf(msg,"{\"dispositivo_saida\":%d}", invertValues[list_components->components[choice].component_out_value]);
+      publish(topico, msg);
+    }
+    else if(choice == list_components->atual+1) {
+      lampada_cozinha[0] = inverte_estado(L_KITCHEN, lampada_cozinha[0]);
+    }
+    else if(choice == list_components->atual+2) {
+      lampada_sala[0] = inverte_estado(L_ROOM, lampada_sala[0]);
     }
 }
 

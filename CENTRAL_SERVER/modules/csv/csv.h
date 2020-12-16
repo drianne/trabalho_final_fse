@@ -1,1 +1,1 @@
-void add_row_csv( int code, int value, int decimal);
+void add_row_csv(char* nome_dispositivo, int value);
