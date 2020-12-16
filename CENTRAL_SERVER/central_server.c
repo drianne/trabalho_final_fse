@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <signal.h>
 #include "mqtt.h"
+#include "module_gpio.h"
 #include "temperature_module_i2c.h"
 #include "central_server.h"
 #include "menu.h"
@@ -17,6 +18,7 @@ void handle_interruption(int signal);
 void *climate_control(void *params);
 void handle_alarm();
 pthread_mutex_t set_temperature_mutex;
+pthread_t t_sensores[QNT_SENSORS];
 
 int main(int argc, char* argv[]) 
 { 
@@ -25,11 +27,19 @@ int main(int argc, char* argv[])
     pthread_mutex_init(&set_temperature_mutex, NULL);
     ualarm(2e5, 2e5);
 
-    struct climate climate;
+    // GPIO
+    initGpio();
+    int aux[QNT_SENSORS] = {0,1,2,3,4,5};
+    for(int index=0; index<QNT_SENSORS; index++) {
+        pthread_create(&t_sensores[index], NULL, polling, &aux[index]);
+    }
 
+    // I2C
+    struct climate climate;
     setup_i2c();
     pthread_create(&ti2c, NULL, climate_control, &climate);
 
+    // MQTT
     struct list_components list_components;
     list_components.total = 0;
     list_components.atual = 0;

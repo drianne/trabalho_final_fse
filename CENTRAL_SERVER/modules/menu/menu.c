@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "central_server.h"
+#include "module_gpio.h"
 #include "temperature_module_i2c.h"
 #include "mqtt.h"
 #include "menu.h"
@@ -14,6 +15,11 @@ void menuBorders();
 void menuUser(struct list_components *list_components);
 void componentSelect(struct list_components *list_components);
 void componentSelect(struct list_components *list_components);
+int inverte_estado(int gpio_pin, int value);
+
+int lampada_cozinha[2] = {0, 0}; //estado/indice
+int lampada_sala[2] = {0, 0};
+
 void *menu(void *params) 
 {
     struct list_components *list_components = params;
@@ -47,16 +53,21 @@ void *menu(void *params)
 }
 
 void dataInfo(struct list_components *list_components) {
+  char mapResponse[2][10] = {"Desligado", "Ligado"};
   int row=2;
   mvprintw ((row++)+MARGIN, MARGIN_INFO, "Informações do sistema");
   row+=2;
-  mvprintw ((row++)+MARGIN, MARGIN_INFO, "Temperatura do sistema: %lf", get_temperature());
-  mvprintw ((row++)+MARGIN, MARGIN_INFO, "Humidade do sistema: %lf", get_humidity());
-  row+=1
+  mvprintw ((row++)+MARGIN, MARGIN_INFO, "Temperatura do sistema: %.2lf", get_temperature());
+  mvprintw ((row++)+MARGIN, MARGIN_INFO, "Humidade do sistema: %.2lf", get_humidity());
+  mvprintw ((row++)+MARGIN, MARGIN_INFO, "Lâmpada cozinha: %s", mapResponse[lampada_cozinha[0]]);
+  mvprintw ((row++)+MARGIN, MARGIN_INFO, "Lâmpada sala: %s", mapResponse[lampada_sala[0]]);
+  row+=1;
   for(int i=0; i<list_components->atual; i++){
     mvprintw ((row++)+MARGIN, MARGIN_INFO, "Nome do cômodo: %s", list_components->components[i].comodo);
     mvprintw ((row++)+MARGIN, MARGIN_INFO, "Temperatura: %.2lf", list_components->components[i].temp);
     mvprintw ((row++)+MARGIN, MARGIN_INFO, "Humidade: %.2lf", list_components->components[i].hum);
+    mvprintw ((row++)+MARGIN, MARGIN_INFO, "%s: %s", list_components->components[i].component_in, mapResponse[list_components->components[i].component_in_value]);
+    mvprintw ((row++)+MARGIN, MARGIN_INFO, "%s: %s", list_components->components[i].component_out, mapResponse[list_components->components[i].component_out_value]);
     row+=2;
   }
 
@@ -75,40 +86,40 @@ void menuBorders() {
     }
 }
 
-
 void componentSelect(struct list_components *list_components) {
     struct pollfd mypoll = { STDIN_FILENO, POLLIN|POLLPRI };
     int row = 2;
     mvprintw (row+MARGIN, 20+MARGIN, "Novo dispositivo encontrado");
-    row += 5;
+    row += 4;
     char comodo[40];
-    mvprintw (row+MARGIN, 20+MARGIN, "Adicione um componente");
-    row += 5;
-    mvprintw((row++)+MARGIN,2+MARGIN,"Digite o nome do cômodo do componente");
-    getstr(comodo);
+    mvprintw((row++)+MARGIN,2+MARGIN,"Digite o nome do cômodo do componente ");
+    scanw(" %s", &comodo);
     strcpy(list_components->components[list_components->atual].comodo, comodo);
-    char topic_subscribe[50] = "fse2020/130126721/";
-    strcat(topic_subscribe, comodo);
-    strcat(topic_subscribe, "/#");
+    char topic_subscribe[50];
+    sprintf(topic_subscribe,"fse2020/130126721/%s/#", comodo);
     subscribe(topic_subscribe);
 
     char topic_publish[50] = "fse2020/130126721/dispositivos/";
     strcat(topic_publish, list_components->components[list_components->atual].mac);
-    publish(topic_publish, "sala");
-    list_components->atual++;
+    char msg [40];
+    sprintf(msg,"{\"comodo\": \"%s\"}", comodo);
+
+    publish(topic_publish, msg);
 
     char dispositivo_entrada[40];
-    mvprintw((row++)+MARGIN,2+MARGIN,"Digite o nome do dispositivo de entrada");
-    getstr(dispositivo_entrada);
+    mvprintw((row++)+MARGIN,2+MARGIN,"Digite o nome do dispositivo de entrada ");
+    scanw(" %s", &dispositivo_entrada);
     strcpy(list_components->components[list_components->atual].component_in, dispositivo_entrada);
 
     char dispositivo_saida[40];
-    mvprintw((row++)+MARGIN,2+MARGIN,"Digite o nome do dispositivo de saída");
-    getstr(dispositivo_saida);
+    mvprintw((row++)+MARGIN,2+MARGIN,"Digite o nome do dispositivo de saída ");
+    scanw(" %s", &dispositivo_saida);
     strcpy(list_components->components[list_components->atual].component_out, dispositivo_saida);
 
     list_components->components[list_components->atual].component_in_value = 0;
     list_components->components[list_components->atual].component_out_value = 0;
+
+    list_components->atual++;
 }
 
 void menuUser(struct list_components *list_components) {
@@ -120,10 +131,7 @@ void menuUser(struct list_components *list_components) {
     char controlType;
     mvprintw (row+MARGIN, 20+MARGIN, "Menu do Sistema");
     row += 5;
-    mvprintw((row++)+MARGIN,2+MARGIN,"a. Definir temperatura");
-    mvprintw((row++)+MARGIN,2+MARGIN,"b. Controlar Ar condicionado");
-    mvprintw((row++)+MARGIN,2+MARGIN,"c. Controlar lâmpada");
-    mvprintw((row++)+MARGIN,2+MARGIN,"d. Desativar controle de temperatura");
+    mvprintw((row++)+MARGIN,2+MARGIN,"a. Controle de dispositivos");
     mvprintw((row++)+MARGIN,2+MARGIN,"Pressione CTRL + C para sair do programa");
     row++;
     mvprintw((row++)+MARGIN,2+MARGIN,"Digite a sua escolha:  ");
@@ -134,8 +142,33 @@ void menuUser(struct list_components *list_components) {
     }
 
     if(!strcmp(choice, "a")) {
-      mvprintw((row++)+MARGIN,2+MARGIN,"Digite a temperatura desejada: ");
-      // send_data(TEMPERATURE_CONTROL, integer, decimal);
+      mvprintw((row++)+MARGIN,2+MARGIN,"Escolha um dos dispositivos: ");
+      int choice;
+      int i;
+      for(i=0; i<list_components->atual; i++){
+        mvprintw ((row++)+MARGIN,2+MARGIN, "%d. %s %s(%s)", i, mapResponse[list_components->components[i].component_out_value],list_components->components[i].component_out, list_components->components[i].comodo);
+      }
+      i++;
+      lampada_cozinha[1] = i;
+      mvprintw ((row++)+MARGIN,2+MARGIN, "%d. %s lâmpada da cozinha", i++, mapResponse[lampada_cozinha[0]]);
+      lampada_sala[1] = i;
+      mvprintw ((row++)+MARGIN,2+MARGIN, "%d. %s lâmpada da sala", i, mapResponse[lampada_sala[0]]);
+
+      mvprintw ((row++)+MARGIN,2+MARGIN, "Digite a sua escolha: ");
+      scanw(" %d", &choice);
+      char topico[50];
+      char msg[60];
+      if (choice <= list_components->atual) {
+        sprintf(topico,"fse2020/130126721/dispositivos/%s", list_components->components[choice].mac);
+        sprintf(msg,"{\"dispositivo_entrada\":%d}", invertValues[list_components->components[choice].component_out_value]);
+        publish(topico, msg);
+      }
+      else if(choice == list_components->atual+1) {
+        lampada_cozinha[0] = inverte_estado(L_KITCHEN, lampada_cozinha[0]);
+      }
+      else if(choice == list_components->atual+2) {
+        lampada_sala[0] = inverte_estado(L_ROOM, lampada_sala[0]);
+      }
     }
     else if(!strcmp(choice, "b")) {
       row++;
@@ -153,34 +186,14 @@ void menuUser(struct list_components *list_components) {
         mvprintw((row++)+MARGIN,2+MARGIN,"Ativação cancelada");
       }
     }
-    else if(!strcmp(choice, "c")) {
-      row++;
-      int lamp;
-      mvprintw((row++)+MARGIN,2+MARGIN,"Digite o número da lâmpada: ");
-      scanw(" %d", &lamp);
-      if (lamp == 1) {
-        // send_data(L_KITCHEN, invertValues[list_components->devices->lampKitchen], 0);
-      }
-      else if(lamp == 2) {
-        // send_data(L_ROOM, invertValues[list_components->devices->lampRoom], 0);
-      }
-      else if(lamp == 3) {
-        // send_data(L_BEDROOM_1, invertValues[list_components->devices->lampBedroom1], 0);
-      }
-      else if(lamp == 4) {
-        // send_data(L_BEDROOM_2, invertValues[list_components->devices->lampBedroom2], 0);
-      }
-      else {
-        mvprintw((row++)+MARGIN,2+MARGIN,"Ativação cancelada");
-      }
-    }
-    else if(!strcmp(choice, "d")) {
-      // send_data(TEMPERATURE_CONTROL, -1, 0);
-    }
-    else if(!strcmp(choice, "$")) {
-      mvprintw((row++)+MARGIN,2+MARGIN,"");
-    }
-    else {
-      mvprintw((row++)+MARGIN,2+MARGIN,"Escolha inválida");
-    }
+}
+
+int inverte_estado(int gpio_pin, int value) {
+  if(value == 0) {
+    turn_on_component(gpio_pin);
+    return 1;
+  } else{
+    turn_off_component(gpio_pin);
+    return 0;
+  }
 }

@@ -1,14 +1,12 @@
 #ifndef CENTRAL_H_
 #define CENTRAL_H_
 
-#define QNT_DEVICES 18
-#define QNT_OUTPUTS 6
-#define TOTAL_DEVICES 8
 
 // Lamps
 #define L_KITCHEN 0
 #define L_ROOM 1
 
+#define QNTD_OUTPUTS 2
 // Presence sensors
 #define SP_ROOM 6
 #define SP_KITCHEN 7

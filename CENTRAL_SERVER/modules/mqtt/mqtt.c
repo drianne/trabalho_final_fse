@@ -5,6 +5,7 @@
 #include <MQTTClient.h>
 #include <cjson/cJSON.h>
 #include "mqtt.h"
+#include "alarm.h"
 #include "central_server.h"
 
 MQTTClient client;
@@ -28,10 +29,7 @@ void publish(char* topic, char* payload) {
 
 int on_message(void *context, char *topicName, int topicLen, MQTTClient_message *message) {
   if(strstr(topicName, "dispositivos") != NULL) {
-    if (list_components->total == 10) {
-      printf("Não é possível adicionar mais dispositivos.");
-    }
-    else{
+    if (list_components->total < 10) {
       char delim[] = "/";
       char *ptr = strtok(topicName, delim);
       char *esp_id;
@@ -49,7 +47,6 @@ int on_message(void *context, char *topicName, int topicLen, MQTTClient_message 
         strcpy(list_components->components[pos].mac, esp_id);
         list_components->total += 1; 
         char* payload = message->payload;
-        printf("Mensagem recebida! \n\rTopico: %s Mensagem: %s Total de Componentes: %d\n", topicName, payload, list_components->total);
         MQTTClient_freeMessage(&message);
         MQTTClient_free(topicName); 
       }
@@ -69,20 +66,21 @@ int on_message(void *context, char *topicName, int topicLen, MQTTClient_message 
     strcpy(comodo, url_paths[1]);
 
     cJSON * json = cJSON_Parse (message->payload);
-    printf("COMODO: %s", comodo);
-    printf("TOPIC: %s", topic);
-    // printf("CHAVE: %s, VALOR: %s", json->child->string, json->child->valuestring);
 
     for(int i=0; i<list_components->total; i++){
       if(strcmp(list_components->components[i].comodo, comodo)==0) {
         if(strcmp(topic, "temperatura") == 0){
-          list_components->components[i].temp = json->child->valuedouble;
+          list_components->components[i].temp = cJSON_GetObjectItemCaseSensitive(json, "temperatura")->valuedouble;
         }
         else if(strcmp(topic, "humidade") == 0){
-          list_components->components[i].hum = json->child->valuedouble;
+          list_components->components[i].hum = cJSON_GetObjectItemCaseSensitive(json, "humidade")->valuedouble;
         }
         else if(strcmp(topic, "estado") == 0){
-          strcpy(list_components->components[i].state, json->child->valuestring);
+          list_components->components[i].component_in_value = cJSON_GetObjectItemCaseSensitive(json, "dispositivo_entrada")->valueint;
+          list_components->components[i].component_out_value = cJSON_GetObjectItemCaseSensitive(json, "dispositivo_saida")->valueint;
+          if (list_components->components[i].component_in_value == 1 || list_components->components[i].component_out_value) {
+            turn_on_alarm();
+          }
         }
       }
     }

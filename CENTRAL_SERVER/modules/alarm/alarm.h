@@ -1,3 +1,3 @@
 
 void turn_on_alarm();
-void turn_down_alarm(struct data *data);
+void turn_down_alarm();
