@@ -85,20 +85,26 @@ Para utilizar o sistema é preciso:
 
 # Exemplo de funcionamento
 
-![](tela_principal.jpg)
+![](imgs/tela_principal.jpg)
 
-![](cadastro_dispositivos.jpg)
+- Solicitação de adição de novo dispositivo: O ventilador foi o nome escolhido pelo usuário para o sensor e a lâmpada para o led.
 
-![](menu.jpg)
+![](imgs/cadastro_dispositivos.jpg)
 
-![](AcionaLampada.jpg)
+- Dashboar de acompanhamento e menu para controle dos dispositivos após o cadastro
 
-![](aciona_sensor.jpg)
+![](imgs/menu.jpg)
+
+- Ligando lâmpada ou led da esp
+
+![](imgs/AcionaLampada.jpg)
+
+![](imgs/aciona_sensor.jpg)
 
 As lâmpadas da cozinha e sala são da rasp e pode ser acompanhado por meio do dashboard: 
 
-![](acionarasp.jpg)
+![](imgs/acionarasp.jpg)
 
-![](acionado_asp.jpg)
+![](imgs/acionado_asp.jpg)
 
 * Obs. O sensor DHT11 dos dois componentes estão com problema, por esse motivo apresenta temperatura e umidade 0 (Envia -1)
