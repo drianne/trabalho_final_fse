@@ -91,19 +91,16 @@ void componentSelect(struct list_components *list_components) {
     int row = 2;
     mvprintw (row+MARGIN, 20+MARGIN, "Novo dispositivo encontrado");
     row += 4;
-    char comodo[40];
+    char comodo[20];
     mvprintw((row++)+MARGIN,2+MARGIN,"Digite o nome do cômodo do componente ");
     scanw(" %s", &comodo);
     strcpy(list_components->components[list_components->atual].comodo, comodo);
-    char topic_subscribe[50];
+    char topic_subscribe[30];
     sprintf(topic_subscribe,"fse2020/130126721/%s/#", comodo);
     subscribe(topic_subscribe);
 
-    char topic_publish[50] = "fse2020/130126721/dispositivos/";
+    char topic_publish[40] = "fse2020/130126721/dispositivos/";
     strcat(topic_publish, list_components->components[list_components->atual].mac);
-    char msg [40];
-    sprintf(msg,"{\"comodo\": \"%s\"}", comodo);
-    publish(topic_publish, msg);
 
 
     char dispositivo_entrada[40];
@@ -119,6 +116,9 @@ void componentSelect(struct list_components *list_components) {
     list_components->components[list_components->atual].component_in_value = 0;
     list_components->components[list_components->atual].component_out_value = 0;
 
+    char msg [40];
+    sprintf(msg,"{\"comodo\": \"%s\"}", comodo);
+    publish(topic_publish, msg);
     list_components->atual++;
 }
 
