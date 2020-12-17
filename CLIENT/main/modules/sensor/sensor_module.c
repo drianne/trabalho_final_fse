@@ -29,9 +29,9 @@ void get_temp_humidity(){
             mqtt_envia_mensagem(get_estado_topic(), estado);
         }
         else {
-            printf("NULO!");
-            printf("%s", possui_valor());
+            printf("Não tem comodo!");
         }
+
         vTaskDelay(3000 / portTICK_PERIOD_MS);
     }
 }
