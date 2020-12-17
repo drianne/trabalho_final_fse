@@ -23,6 +23,7 @@
 #include "../mqtt/mqtt.h"
 #include "../led/led.h"
 #include "../../main.h"
+#include "../button/button.h"
 #include "../memory/config.h"
 
 #define TAG "MQTT"
@@ -138,10 +139,10 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
                     format = cJSON_GetObjectItem(json,"dispositivo_saida");
                     if(format != NULL){
                         int estado = format->valueint;
-                        char msg [50];                        
+                        char msg [70];                        
 
                         change_led(estado);
-                        sprintf(msg, "{\"dispositivo_saida\": %d}", estado);
+                        sprintf(msg, "{\"dispositivo_entrada\": %d, \"dispositivo_saida\": %d}", get_valor_botao(), estado);
                         printf("\n\nMudança de Lâmpada");
                         mqtt_envia_mensagem(get_estado_topic(), msg);
                     }

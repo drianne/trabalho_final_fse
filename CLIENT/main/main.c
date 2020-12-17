@@ -12,6 +12,7 @@
 #include "./modules/mqtt/mqtt.h"
 #include "./modules/sensor/sensor_module.h"
 #include "./modules/memory/config.h"
+#include "./modules/button/button.h"
 
 xSemaphoreHandle conexaoWifiSemaphore;
 xSemaphoreHandle conexaoMQTTSemaphore;
@@ -61,6 +62,7 @@ void app_main(void){
     conexaoWifiSemaphore = xSemaphoreCreateBinary();
     conexaoMQTTSemaphore = xSemaphoreCreateBinary();
 
+    botao_init();
     wifi_start();    
 
     xTaskCreate(&conectadoWifi,  "Conexão ao MQTT", 4096, NULL, 1, NULL);

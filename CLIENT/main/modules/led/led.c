@@ -7,6 +7,7 @@
 #include "../led/led.h"
 
 #define LED 2
+int led_value;
 
 void start_led(){
     gpio_pad_select_gpio(LED);
@@ -15,10 +16,15 @@ void start_led(){
 
 void change_led(int value){
     gpio_set_level(LED, value);
+    led_value = value;
 }
 
 void flash_light(){
     change_led(1);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
     change_led(0);
+}
+
+int get_led_value() {
+    return led_value;
 }
