@@ -13,16 +13,12 @@ void start_led(){
     gpio_set_direction(LED, GPIO_MODE_OUTPUT);
 }
 
-void off_led(){
-    gpio_set_level(LED, 0);
-}
-
-void on_led(){
-    gpio_set_level(LED, 1);
+void change_led(int value){
+    gpio_set_level(LED, value);
 }
 
 void flash_light(){
-    on_led();
+    change_led(1);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
-    off_led();
+    change_led(0);
 }

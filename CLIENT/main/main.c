@@ -39,7 +39,7 @@ void trataComunicacaoComServidor(void * params){
     while(true){
       char init_message [200];
 
-      strcpy(init_message, "fse2020/160047595/dispositivos/");
+      strcpy(init_message, "fse2020/130126721/dispositivos/");
       strcat(init_message, get_mac_address());
       printf("%s", init_message);
       mqtt_envia_mensagem(init_message, "novo");

@@ -2,9 +2,9 @@
 #define MQTT_H
 
 struct Information{    
-    char topic_temperature[40];
-    char topic_state[40];
-    char topic_humidity[40];
+    char topic_temperature[60];
+    char topic_state[60];
+    char topic_humidity[60];
 };
 
 void mqtt_start();

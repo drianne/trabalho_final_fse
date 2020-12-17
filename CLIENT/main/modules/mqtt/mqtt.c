@@ -26,7 +26,7 @@
 #include "../memory/config.h"
 
 #define TAG "MQTT"
-#define INITIAL_TOPIC "fse2020/160047595/dispositivos/"
+#define INITIAL_TOPIC "fse2020/130126721/dispositivos/"
 #define RAIZ_TOPICS "fse2020/130126721/"
 
 char init_message [200];
@@ -115,29 +115,37 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
 
             cJSON * json = cJSON_Parse(data); // Parse to json to access
             
-            if (strcmp(topic, "fse2020/160047595/dispositivos/F0:08:D1:CC:76:20") == 0){
-                cJSON * format = cJSON_GetObjectItem(json,"comodo");
-                char comodo [2048];
-                sprintf(comodo, format->valuestring);
-                
-                char umidade [50];
-                char temperatura [50];
-                char estado [50];
+            char mac_esp[18];
+            strcpy(mac_esp, get_mac_address());
+            char topic_register[50];
+            sprintf(topic_register, "fse2020/130126721/dispositivos/%s", mac_esp);
 
-                sprintf(umidade, RAIZ_TOPICS);
-                strcat(umidade, comodo);
-                strcat(umidade, "/humidade");
-                strcpy(general_topic.topic_humidity, umidade);
-                
-                sprintf(estado, RAIZ_TOPICS);
-                strcat(estado, comodo);
-                strcat(estado, "/estado");
-                strcpy(general_topic.topic_state, estado);
+            if (strcmp(topic, topic_register) == 0 && strcmp(event->data,"novo") != 0 ){
+                cJSON * format = NULL; 
+                format = cJSON_GetObjectItem(json,"comodo");
+                if (format != NULL) {
+                    printf("ENTROU AQUI PAI");
+                    char comodo [30];
 
-                sprintf(temperatura, RAIZ_TOPICS);
-                strcat(temperatura, comodo);
-                strcat(temperatura, "/temperatura");
-                strcpy(general_topic.topic_temperature, temperatura);
+                    sprintf(comodo, format->valuestring);
+                    grava_valor_nvs(comodo);
+
+                    sprintf(general_topic.topic_humidity, "fse2020/130126721/%s/humidade", comodo);
+                    sprintf(general_topic.topic_state, "fse2020/130126721/%s/estado", comodo);
+                    sprintf(general_topic.topic_temperature, "fse2020/130126721/%s/temperatura", comodo);
+                } else {
+                    printf("\n\nDispositivo de saída\n");
+                    format = cJSON_GetObjectItem(json,"dispositivo_saida");
+                    if(format != NULL){
+                        int estado = format->valueint;
+                        char msg [50];                        
+
+                        change_led(estado);
+                        sprintf(msg, "{\"dispositivo_saida\": %d}", estado);
+                        printf("\n\nMudança de Lâmpada");
+                        mqtt_envia_mensagem(get_estado_topic(), msg);
+                    }
+                }
             }
 
             // cJSON * format = cJSON_GetObjectItem(json,"oi");

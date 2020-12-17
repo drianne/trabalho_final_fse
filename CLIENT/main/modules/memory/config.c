@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <string.h>
+char *valor_nvs;
 
 const char* le_valor_nvs(){
     // Inicia o acesso à partição padrão nvs
@@ -39,6 +40,7 @@ const char* le_valor_nvs(){
             {
             case ESP_OK:
                 printf("Valor armazenado: %s\n", valor);
+                valor_nvs = valor;
                 break;
             case ESP_ERR_NOT_FOUND:
                 ESP_LOGE("NVS", "Valor não encontrado");
@@ -58,8 +60,8 @@ const char* le_valor_nvs(){
 const char* possui_valor(){
     const char* valor_lido = le_valor_nvs();
 
-    if(valor_lido != NULL){
-      return valor_lido;
+    if(valor_nvs != NULL){
+      return valor_nvs;
     }else{
       return NULL;
     }

@@ -5,6 +5,7 @@
 
 #include "dht11.h"
 #include "../mqtt/mqtt.h"
+#include "../memory/config.h"
 
 static struct dht11_reading last_read;
 
@@ -22,10 +23,15 @@ void get_temp_humidity(){
         sprintf(umidade, "{\"umidade\": %.2lf}", (double)last_read.humidity);
         sprintf(estado, "{\"estado\": %.2lf}", (double)last_read.status);
 
-        mqtt_envia_mensagem(get_temperature_topic(), temperatura);
-        mqtt_envia_mensagem(get_umidade_topic(), umidade);
-        mqtt_envia_mensagem(get_estado_topic(), estado);
-
+        if(possui_valor() != NULL) {
+            mqtt_envia_mensagem(get_temperature_topic(), temperatura);
+            mqtt_envia_mensagem(get_umidade_topic(), umidade);
+            mqtt_envia_mensagem(get_estado_topic(), estado);
+        }
+        else {
+            printf("NULO!");
+            printf("%s", possui_valor());
+        }
         vTaskDelay(3000 / portTICK_PERIOD_MS);
     }
 }
