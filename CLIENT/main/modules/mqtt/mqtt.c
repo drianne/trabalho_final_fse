@@ -106,7 +106,6 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
             break;
         case MQTT_EVENT_DATA:
             ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-            flash_light();
 
             char topic [200];
             char data [200]; 
@@ -131,7 +130,7 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
                     sprintf(comodo, format->valuestring);
                     grava_valor_nvs(comodo);
 
-                    sprintf(general_topic.topic_humidity, "fse2020/130126721/%s/humidade", comodo);
+                    sprintf(general_topic.topic_humidity, "fse2020/130126721/%s/umidade", comodo);
                     sprintf(general_topic.topic_state, "fse2020/130126721/%s/estado", comodo);
                     sprintf(general_topic.topic_temperature, "fse2020/130126721/%s/temperatura", comodo);
                 } else {
