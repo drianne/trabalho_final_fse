@@ -19,13 +19,13 @@ void get_temp_humidity(){
         char temperatura[50];
         char estado[50];       
         
-        sprintf(temperatura, "{\"temperatura\": 0.0}");
-        sprintf(umidade, "{\"umidade\": 0.0}");
+        sprintf(temperatura, "{\"temperatura\": %.2lf}", (double)last_read.temperature);
+        sprintf(umidade, "{\"umidade\": %.2lf}", (double)last_read.humidity);
 
         if(possui_valor() != NULL) {
             mqtt_envia_mensagem(get_temperature_topic(), temperatura);
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
             mqtt_envia_mensagem(get_umidade_topic(), umidade);
+            mqtt_envia_mensagem(get_estado_topic(), estado);
         }
         else {
             printf("Não tem comodo!");
